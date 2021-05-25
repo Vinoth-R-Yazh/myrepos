@@ -1,0 +1,11 @@
+- name: nmon fix
+  hosts: all
+
+  tasks:
+
+  - name: Check if rpm is available exists
+    command: /bin/rpm -qa | grep -i nmon
+    register: nmon_check
+    
+  - name: File adding
+    file: path=/tmp/test123 state=present
