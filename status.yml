@@ -3,7 +3,7 @@
 
   tasks:
 
-   - name: Subscription status checking
-     shell: subscription-manager status |grep -i current
+   - name: Uptime checking
+     shell: uptime; uname -r
      register: out
    - debug: msg="{{ out.stdout }}"
