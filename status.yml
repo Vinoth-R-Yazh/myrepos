@@ -1,9 +1,10 @@
 - name: satellite-registration
   hosts: all
+  become: yes
 
   tasks:
 
    - name: Uptime checking
-     shell: uptime > /home/awx/uptime; uname -r > /home/awx/uname
+     shell: uptime > /tmp/uptime.txt; uname -r > /tmp/uname.txt
      register: out
    - debug: msg="{{ out.stdout }}"
