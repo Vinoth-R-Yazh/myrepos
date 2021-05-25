@@ -1,4 +1,4 @@
-- name: nmon fix
+- name: pkg checking
   hosts: all
 
   tasks:
