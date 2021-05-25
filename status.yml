@@ -4,6 +4,6 @@
   tasks:
 
    - name: Uptime checking
-     shell: uptime > /tmp/uptime; uname -r > /tmp/uname
+     shell: uptime > /home/awx/uptime; uname -r > /home/awx/uname
      register: out
    - debug: msg="{{ out.stdout }}"
