@@ -1,0 +1,9 @@
+- name: satellite-registration
+  hosts: all
+
+  tasks:
+
+   - name: Subscription status checking
+     shell: subscription-manager status |grep -i current
+     register: out
+   - debug: msg="{{ out.stdout }}"
