@@ -10,5 +10,5 @@
    - debug: msg="{{ out.stdout }}"
    
    - name: create file
-     file: path=/tmp/nologin1 state=touch
+     file: path=/tmp/vinothfile state=touch
 
