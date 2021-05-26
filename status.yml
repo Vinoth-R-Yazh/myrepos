@@ -11,5 +11,6 @@
    
    - name: create file
      shell: touch /tmp/123vino
+     warn: false
      register: va
    - debug: msg="{{ va.stdout }}"
