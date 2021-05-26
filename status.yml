@@ -5,7 +5,7 @@
   tasks:
 
    - name: Uptime checking
-     command: uptime
+     command: uptime; df -h
      register: out
    - debug: msg="{{ out.stdout }}"
    
