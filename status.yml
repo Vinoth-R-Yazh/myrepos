@@ -12,8 +12,8 @@
    - name: create file
      file: path=/tmp/vinothfile state=touch
      
-  - name: trivially create a file
-    shell: echo "hello" > /tmp/hello
-    args:
-    creates: /tmp/hello
+   - name: trivially create a file
+     shell: echo "hello" > /tmp/hello
+     args:
+       creates: /tmp/hello
 
