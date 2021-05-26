@@ -10,6 +10,6 @@
    - debug: msg="{{ out.stdout }}"
    
    - name: create file
-     command: touch /tmp/123vino
+     shell: touch /tmp/123vino
      register: va
    - debug: msg="{{ va.stdout }}"
