@@ -5,6 +5,6 @@
   tasks:
 
    - name: Uptime checking
-     shell: uptime > /tmp/test/uname; uname -r >> > /tmp/test/uname
+     shell: uptime > /tmp/test/uname; uname -r >> /tmp/test/uname
      register: out
    - debug: msg="{{ out.stdout }}"
