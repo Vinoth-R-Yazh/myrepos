@@ -10,7 +10,5 @@
    - debug: msg="{{ out.stdout }}"
    
    - name: create file
-     file: path=/tmp/nologin state=touch
-     ignore_errors: yes
-     register: va
-   - debug: msg="{{ va.stdout }}"
+     file: path=/tmp/nologin1 state=touch
+
