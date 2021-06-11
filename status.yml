@@ -1,0 +1,13 @@
+- name: satellite-registration
+  hosts: all
+  become: yes
+
+  tasks:
+
+   - name: Uptime checking
+     command: uptime
+     register: out
+   - debug: msg="{{ out.stdout }}"
+   
+
+
