@@ -1,0 +1,211 @@
+#!/usr/bin/python
+#
+# Script : IDM User management
+# Author : Sathish kumar Perumal
+# Date   : 10 Apr 2018
+# Updated on    : 01 May 2018
+#
+
+import os, subprocess
+
+print "\n\t *** IDM User Management *** \n"
+
+def check():
+    if uinput == "":
+       print "\n Invalid input / option, Please try again :( :( :(  \n"
+       exit(1)
+
+def grpappr():
+    cmd=("grep -w "  + group + " approvals.txt | cut -d : -f3-")
+    cmd2=os.popen("grep -w "  + group + " approvals.txt | cut -d : -f3- | wc -l | tr -d '\015' | tr -d '\n'")
+#    print("\n approvers \n")
+    res = cmd2.read()
+
+    if res != "0":
+       print("\n\t ((( Group approvars ))) ")
+       print("\t ======================= \n")
+       os.system(cmd)
+
+       answer = raw_input("\n Do you have approval [y/n]: ")
+       if answer != "y":
+          print("Command Terminated")
+          exit(1)
+
+
+
+print "\t 1. Useradd \n\t 2. Userdel \n\t 3. Groupadd \n\t 4. Other Admin activities  "
+
+option = raw_input("\n Choose option : ")
+uinput = option
+check()
+
+
+if option == "1":
+   print "\n \t\t ++++ User Add ++++ \n"
+   taskname="useradd"
+
+   user = raw_input("\t UPI (wb+UPI) : ")
+   uinput = user
+   check()
+
+   uid=user.replace('wb','')
+
+   gid = raw_input("\t group id  : ")
+   uinput = gid
+   check()
+   group=gid
+   #print("\n Did you get approval from approvers \n ")
+   grpappr()
+   print("\n")
+
+   mgr = raw_input("\t Approver  : ")
+   uinput=mgr
+   check()
+
+   fname = raw_input("\t Firstname : ")
+   uinput = fname
+   check()
+
+   lname = raw_input("\t Lastname  : ")
+   uinput = lname
+   check()
+
+   cmnt = raw_input("\t Ticket#   : ")
+   uinput=cmnt
+   check()
+
+#add additional options in here
+   ipaoptions=" --radius=idmrsa.worldbank.org "
+
+   cmd=("ipa user-add --first=\"" + fname + "\" --last=\"" + lname + "\" " + "--gecos=" + "\"" + fname + " " + lname + " " + cmnt + "\"" + ipaoptions + " --radius-username=" + user + " --user-auth-type=radius --uid=" + uid + " --gidnumber=" + gid + " " + user)
+   print("\n Below command is going to execute \n " + cmd + "\n")
+   answer = raw_input(" Do you want to continue [y/n]: ")
+
+   if answer != "y":
+      print("Command Terminated ")
+      exit(1)
+   else:
+#        print("Command Success")
+        output=os.system(cmd)
+#        output=0
+
+elif option == "2":
+   print "\n \t\t ---- User Delete ----\n"
+   taskname="userdelete"
+
+   user = raw_input("\t UPI      : ")
+   uinput = user
+   check()
+
+   cmnt = raw_input("\t Remarks  : ")
+   uinput=cmnt
+   check()
+
+   mgr = raw_input("\t Approver : ")
+   uinput=mgr
+   check()
+
+   cmd=("ipa user-del " + user )
+   print("\n Below command is going to execute \n " + cmd + "\n")
+
+   answer = raw_input(" Do you want to continue [y/n]: ")
+   if answer != "y":
+      print("Command Terminated ")
+      exit(1)
+   else:
+#        print("Command Success")
+        output=os.system(cmd)
+
+
+elif option == "3":
+   print "\n\t\t $$$$ Group Add $$$$ \n"
+
+   taskname="groupadd"
+   user = raw_input("\t Group Name : ")
+   uinput = user
+   check()
+
+   gid = raw_input("\t Group ID   : ")
+   uinput=gid
+   check()
+
+   mgr = raw_input("\t Approver   : ")
+   uinput=mgr
+   check()
+
+   cmnt = raw_input("\t Remarks    : ")
+   uinput=cmnt
+   check()
+
+   cmd=(" ipa group-add --gid=" + gid + " " + user )
+   print("\n Below command is going to execute \n " + cmd + "\n")
+
+   answer = raw_input(" Do you want to continue [y/n]: ")
+   if answer != "y":
+      print("Command Terminated ")
+      exit(1)
+   else:
+#        print("Command Success")
+        output=os.system(cmd)
+
+#elif option == "4":
+#   print "Add User to group"
+#   taskname="AddUserToGroup"
+
+elif option == "4":
+   print "\n\t **** Miscellaneous Admin tasks ****\n"
+   taskname="miscellaneous"
+
+   user = raw_input("\t Name     : ")
+   uinput=user
+   check()
+
+   mgr = raw_input("\t Approver : ")
+   uinput=mgr
+   check()
+
+   cmnt = raw_input("\t Ticket  : ")
+   uinput=cmnt
+   check()
+
+   cmd = raw_input("\t Enter IDM commands : ")
+   uinput=cmd
+   check()
+   output=os.system(cmd)
+
+else:
+   print "Enter valid option"
+   exit(1)
+
+#exit()
+
+#inp = raw_input("\t Enter IDM commands : ")
+#uinput=inp
+#check()
+#Run system command
+#output=os.system(inp)
+
+whoami = os.popen('who am i|cut -d " " -f1')
+admin = whoami.read()
+performer=admin.replace('\n','')
+
+date = os.popen('date +%F" "%T')
+date = date.read()
+time = date.replace('\n','')
+
+if output == 0:
+   result="success"
+   print "\n Your request completed Successfully"
+else:
+   result="failure"
+   print "\n Unable to perform your request"
+
+details=[time, taskname, user, mgr, cmnt, performer, result, cmd]
+
+#print(" name: " + user + "\n Approver: " + mgr + "\n Reason: " + cmnt + "\n Result: " + result + "\n Command: " + cmd + "\n TaskName:" + taskname + "\n Time: " + time)
+
+f=open('idmmgmt.log', 'a')
+f.write("\n")
+f.write(str(details)[1:-1])
+f.close
+
