@@ -1,0 +1,181 @@
+#!/bin/bash
+#
+# Description : Script will report if any modification in hbac rule
+# Updated on : 07  Dec 2017
+# 15 Dec 2019 - Added html mail and multi group monitor enabled
+
+
+#create md5sum for all files
+#md5sum icfr-unix_* | awk '{print $2":"$1}' > key
+
+export PATH=$PATH:/usr/sbin:/usr/bin:/bin:/sbin
+
+KEYFILE="key"
+RULEFILE="rule"
+OUTPUT="output"
+EMAIL="output.html"
+
+rm -f $EMAIL
+
+#mkdir -p rulefiles
+
+if [[ ! -f $RULEFILE ]];
+ then
+    echo "Error: HBAC file is missing"
+    echo -e "\n File name should be \"rule\" in same directory "
+    exit
+fi
+
+
+keygen()
+{
+#echo "PASSWORD" | kinit ansible@WORLDBANK.ORG 2>/dev/null 1>/dev/null
+bin/getkerberos
+
+mkdir -p $DIRECTORY
+for rule in `cat $RULEFILE`
+do
+        GRP="$rule"
+        HBACRULE="H-$rule"
+        HOSTGRP="hg-$rule"
+
+        ipa group-show $GRP > $DIRECTORY/$GRP
+        ipa hbacrule-show $HBACRULE > $DIRECTORY/$HBACRULE
+        ipa hostgroup-show $HOSTGRP > $DIRECTORY/$HOSTGRP
+#sleep 1
+done
+}
+
+helppage()
+{
+ echo -e "Script will send report if any modification in hbac rule
+
+ options:
+  --keyupdate   = Update new key in key file
+  --help        = help \n"
+
+}
+
+
+rm -f $OUTPUT
+
+if [[ $1 == "--help" ]]
+then
+ helppage
+ exit
+
+ elif [[ $1 == "--keyupdate" ]];
+ then
+   rm $KEYFILE 1>/dev/null 2>/dev/null
+   DIRECTORY=permanent
+   mkdir -p $DIRECTORY
+   keygen
+
+   for rule in `cat $RULEFILE`
+   do
+        GRP="$rule"
+        HBACRULE="H-$rule"
+        HOSTGRP="hg-$rule"
+
+    md5sum $DIRECTORY/$GRP $DIRECTORY/$HBACRULE $DIRECTORY/$HOSTGRP | awk '{print $2":"$1}' | cut -d "/" -f2- >> $KEYFILE
+
+   done
+#   cp $GRP $HBACRULE $HOSTGRP rulefiles
+   echo "New Keys updated"
+
+   exit
+
+ elif [[ ! $1 ]]
+ then
+        if [[ ! -f $KEYFILE ]];
+        then
+           echo "Error: key file is missing"
+           echo -e "\nCreate key file using command \n\n $0 --keyupdate"
+           exit
+        fi
+
+  DIRECTORY=present
+  mkdir -p $DIRECTORY
+  keygen
+
+  for rule in `cat $RULEFILE`
+  do
+        GRP="$rule"
+        HBACRULE="H-$rule"
+        HOSTGRP="hg-$rule"
+
+  for i in $GRP $HBACRULE $HOSTGRP
+  do
+  key1=`cat $KEYFILE | grep -w ^$i | cut -d ":" -f2 | sed 's/ //g'`
+  key2=`cat present/$i | md5sum | cut -d " " -f1 | sed 's/ //g'`
+
+    if [[ $key1 != $key2 ]];
+    then
+
+      echo -e "\n $i " >> $OUTPUT
+      echo "$i : IDM Rule modified"
+
+      echo -e "<tr> <th bgcolor=khaki> $i - Old </th> <th bgcolor=khaki> $i - New </th> </tr> " >> $EMAIL
+
+      echo -e "OldRule \n`cat permanent/$i`" >> $OUTPUT
+      echo -e "<tr> <td> <pre>`cat permanent/$i`</pre> </td>" >> $EMAIL
+
+      echo -e "\nNewRule \n`cat present/$i`" >> $OUTPUT
+      echo -e "<td><pre>`cat present/$i` </pre> </td> </tr>" >> $EMAIL
+
+      mkdir logs 2>/dev/null 1>/dev/null
+      cp $OUTPUT  logs/$i-updated-$(date +%F-%H%M%S)
+    else
+      echo "$i : Fine"
+    fi
+
+  done
+  done
+ else
+
+ helppage
+ exit
+fi
+
+if [[ -f $OUTPUT ]]; then
+   if [[ `wc -l $OUTPUT | cut -d " " -f1 | tr -d "\015"` -ge 1 ]];
+   then
+#      cat $OUTPUT | mail -s "Alert - IDM HBAC rule Modified" sm-linux@worldbank.org
+#      echo " *** Below IDM Rules Modified ***" >> $OUTPUT
+
+echo -e "To: sm-linux@worldbank.org
+Subject: Alert : IDM Rules Modified
+MIME-Version: 1.0
+Content-Type: text/html; charset="us-ascii"
+Content-Disposition: inline
+<html>
+<body>
+
+<style>
+pre {
+    display: block;
+    font-family: Arial;
+    white-space: pre;
+    margin: 1em 0;
+}
+</style>
+
+
+<h3 align=center> Below IDM Rules Modified </h3>
+<table border=1 align=center width=80%> " > sendemail.html
+
+cat $EMAIL  >> sendemail.html
+
+#echo  -e "</table> </body> <footer>
+# <p align=center> If this email is not related you, Please reach <a href="mailto:sm-linux@worldbank.org"> sm-linux@worldbank.org</a>.</p>  </footer>
+echo "</html> " >> sendemail.html
+
+cat sendemail.html | sendmail -t -v
+
+#    echo -e "*** Below IDM Rules Modified *** \n\n`cat $OUTPUT` " | mail -s "Alert - ICFR IDM HBAC rule Modified" sperumal1@worldbankgroup.org  rraman1@worldbankgroup.org
+#    echo -e "*** Below IDM Rules Modified *** \n\n`cat $OUTPUT` " | mail -s "Alert - ICFR IDM HBAC rule Modified" sm-linux@worldbank.org
+
+fi
+fi
+
+rm -f  $GRP $HBACRULE $HOSTGRP
