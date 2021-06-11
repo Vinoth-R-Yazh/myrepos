@@ -29,7 +29,7 @@ fi
 
 keygen()
 {
-#echo "PASSWORD" | kinit ansible@WORLDBANK.ORG 2>/dev/null 1>/dev/null
+#echo "PASSWORD" | kinit ansible@ORG 2>/dev/null 1>/dev/null
 bin/getkerberos
 
 mkdir -p $DIRECTORY
@@ -140,10 +140,10 @@ fi
 if [[ -f $OUTPUT ]]; then
    if [[ `wc -l $OUTPUT | cut -d " " -f1 | tr -d "\015"` -ge 1 ]];
    then
-#      cat $OUTPUT | mail -s "Alert - IDM HBAC rule Modified" sm-linux@worldbank.org
+#      cat $OUTPUT | mail -s "Alert - IDM HBAC rule Modified" 
 #      echo " *** Below IDM Rules Modified ***" >> $OUTPUT
 
-echo -e "To: sm-linux@worldbank.org
+echo -e "To: team@mail
 Subject: Alert : IDM Rules Modified
 MIME-Version: 1.0
 Content-Type: text/html; charset="us-ascii"
